@@ -91,7 +91,6 @@ class AppMonitoringService : Service() {
                 if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND) {
                     currentApp = event.packageName
                     currentActivity = event.className
-                    // Log each detected MOVE_TO_FOREGROUND event
                     Log.v(TAG, "MOVE_TO_FOREGROUND event: ${event.packageName}")
                 }
             }
@@ -120,28 +119,6 @@ class AppMonitoringService : Service() {
         startService(restartServiceIntent)
     }
 }
-
-/**
- * IMPORTANT MANIFEST ENTRIES NEEDED:
- *
- * <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
- * <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
- * <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
- *
- * <service
- *     android:name=".AppMonitoringService"
- *     android:enabled="true"
- *     android:exported="false" />
- *
- * <receiver
- *     android:name=".BootReceiver"
- *     android:enabled="true"
- *     android:exported="true">
- *     <intent-filter>
- *         <action android:name="android.intent.action.BOOT_COMPLETED" />
- *     </intent-filter>
- * </receiver>
- */
 
 /**
  * Boot Receiver to start the service when the device boots
