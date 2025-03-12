@@ -48,6 +48,8 @@ class AppMonitoringService : Service() {
                 foregroundApp = info.first
                 foregroundActivity = info.second
 
+                Log.v(TAG, "Move to Foreground app: $foregroundApp, activity: $foregroundActivity")
+
                 // Log all foreground apps (but avoid spamming logs with the same app repeatedly)
                 if (foregroundApp.isNotEmpty() && foregroundApp != lastLoggedApp) {
                     Log.d(
@@ -65,8 +67,13 @@ class AppMonitoringService : Service() {
                 }
 
                 // Check if home screen launcher is detected or user went to recents
-                if ((foregroundApp == "com.android.launcher" && foregroundActivity == "com.android.launcher.Launcher") ||
+                if ((foregroundApp == "com.android.launcher" && foregroundActivity == "com.android.launcher.Launcher")
+                    ||
                     (foregroundApp == "com.android.systemui" && foregroundActivity == "com.android.systemui.recents.RecentsActivity")
+                    ||
+                    (foregroundApp == "com.google.android.apps.nexuslauncher")
+                    ||
+                    foregroundApp.contains("launcher")
                 ) {
                     Log.d(TAG, "Home screen or recents detected - killing Malware app")
                     killMainActivity()
@@ -101,13 +108,10 @@ class AppMonitoringService : Service() {
             while (usageEvents.hasNextEvent()) {
                 usageEvents.getNextEvent(event)
 
-                if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND) {
+                if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
                     currentApp = event.packageName
                     currentActivity = event.className
-                    Log.v(
-                        TAG,
-                        "MOVE_TO_FOREGROUND event: ${event.packageName} && ${event.className}"
-                    )
+                    Log.d(TAG, "DetectedForeground app: $currentApp, activity: $currentActivity")
                 }
             }
         } catch (e: Exception) {
