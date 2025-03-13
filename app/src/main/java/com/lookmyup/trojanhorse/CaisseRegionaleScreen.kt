@@ -1,13 +1,13 @@
 package com.lookmyup.trojanhorse
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,15 +26,17 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun CaisseRegionaleScreen() {
+fun CaisseRegionaleScreen(
+    onCaisseSelected: (CaisseRegionale) -> Unit = {}
+) {
     val caissesList = listOf(
         CaisseRegionale("Alpes Provence", listOf("04", "05", "13", "84")),
         CaisseRegionale("Alsace Vosges", listOf("67", "68", "88")),
@@ -93,18 +95,24 @@ fun CaisseRegionaleScreen() {
 
             // Search Bar
             OutlinedTextField(
+                maxLines = 1,
                 value = "",
                 onValueChange = {},
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 8.dp),
-                placeholder = { Text("Caisse régionale ou N° département") },
+                placeholder = {
+                    Text(
+                        "Caisse régionale ou N° département",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
                 leadingIcon = {
                     Icon(
                         Icons.Default.Search,
                         contentDescription = "Search",
-                        tint = Color.Green
+                        tint = Color(0xFF2B6B55)
                     )
                 },
                 shape = RoundedCornerShape(8.dp),
@@ -122,7 +130,7 @@ fun CaisseRegionaleScreen() {
                     .padding(horizontal = 16.dp)
             ) {
                 items(caissesList) { caisse ->
-                    CaisseRegionaleItem(caisse = caisse)
+                    CaisseRegionaleItem(caisse = caisse, onCaisseSelected)
                 }
             }
         }
@@ -130,26 +138,24 @@ fun CaisseRegionaleScreen() {
 }
 
 @Composable
-fun CaisseRegionaleItem(caisse: CaisseRegionale) {
+fun CaisseRegionaleItem(caisse: CaisseRegionale, onCaisseSelected: (CaisseRegionale) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable {
+                onCaisseSelected(caisse)
+            }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // CA Logo
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color.White)
-                .clip(RoundedCornerShape(4.dp)),
+            modifier = Modifier.size(50.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "CA",
-                color = Color(0xFF006A4D),
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+            Image(
+                painter = painterResource(id = R.drawable.caisse_logo),
+                contentDescription = "logo",
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
@@ -159,7 +165,6 @@ fun CaisseRegionaleItem(caisse: CaisseRegionale) {
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "Départements ${caisse.departments.joinToString(" · ")}",
                 fontSize = 12.sp,

